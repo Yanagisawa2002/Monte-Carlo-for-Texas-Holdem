@@ -207,77 +207,85 @@ class PokerWinRateCalculator:
             
         self.community_cards.extend(new_cards)
     
-    def calculate_win_rate(self, simulations=10000):
-        # 使用蒙特卡洛模拟计算胜率
+    def calculate_win_rate(self, simulations=10000, progress_callback=None):
+        # Monte Carlo simulation to calculate win rate
         wins = 0
         ties = 0
         total_simulations = simulations
-        
-        # 检查是否已有足够的公牌
+    
+        # Check if there are enough community cards
         if len(self.community_cards) > 5:
-            raise ValueError("公牌不能超过5张")
-            
+            raise ValueError("Community cards cannot exceed 5")
+    
         start_time = time.time()
-        progress_bar = tqdm(range(simulations), desc="模拟进度", unit="次", ncols=100)
-        
-        for _ in progress_bar:
-            # 创建一副新牌并移除已知卡牌
+        progress_bar = tqdm(range(simulations), desc="Simulation Progress", unit="sim", ncols=100)
+    
+        for i in progress_bar:
+            # Create new deck and remove known cards
             deck = Deck()
             for card in self.my_cards + self.community_cards:
                 deck.remove_card(card)
-                
-            # 为其他玩家发牌
+    
+            # Deal hands to other players
             other_players = []
             for _ in range(self.num_players - 1):
                 if len(deck.cards) < 2:
-                    # 牌不够了，跳过这次模拟
+                    # Not enough cards, skip this simulation
                     total_simulations -= 1
                     continue
                 player_hand = [deck.draw(), deck.draw()]
                 other_players.append(player_hand)
-                
-            # 发剩余的公牌
+    
+            # Deal remaining community cards
             remaining_community = []
             needed = 5 - len(self.community_cards)
             if len(deck.cards) < needed:
-                # 牌不够了，跳过这次模拟
+                # Not enough cards, skip this simulation
                 total_simulations -= 1
                 continue
             for _ in range(needed):
                 remaining_community.append(deck.draw())
-                
-            # 评估我的手牌
+    
+            # Evaluate my hand
             my_full_hand = self.my_cards + self.community_cards + remaining_community
             my_score = HandEvaluator.evaluate_hand(my_full_hand)
-            
-            # 评估其他玩家的手牌
+    
+            # Evaluate other players' hands
             other_scores = []
             for hand in other_players:
                 full_hand = hand + self.community_cards + remaining_community
                 other_scores.append(HandEvaluator.evaluate_hand(full_hand))
-                
-            # 比较结果
+    
+            # Compare results
             if all(my_score > score for score in other_scores):
                 wins += 1
             elif any(my_score == score for score in other_scores):
                 ties += 1
-                
-            # 更新进度条信息
+    
+            # Update progress callback every 100 simulations
+            if progress_callback and i % 100 == 0:
+                progress_callback(i + 1, simulations)
+    
+            # Update progress bar info
             elapsed_time = time.time() - start_time
-            iterations_done = progress_bar.n + 1
+            iterations_done = i + 1
             if iterations_done > 0:
                 avg_time_per_iter = elapsed_time / iterations_done
                 remaining_iter = simulations - iterations_done
                 eta_seconds = remaining_iter * avg_time_per_iter
-                
-                # 格式化ETA时间
+    
+                # Format ETA time
                 eta_str = time.strftime('%H:%M:%S', time.gmtime(eta_seconds))
-                progress_bar.set_postfix_str(f"胜率: {wins/iterations_done:.2%}, ETA: {eta_str}")
-                
+                progress_bar.set_postfix_str(f"Win Rate: {wins/iterations_done:.2%}, ETA: {eta_str}")
+    
+        # Final progress update
+        if progress_callback:
+            progress_callback(simulations, simulations)
+    
         if total_simulations == 0:
             return 0
-            
-        # 计算胜率，平局算作半个胜场
+    
+        # Calculate win rate, counting ties as half a win
         win_rate = (wins + ties / 2) / total_simulations
         return win_rate
 
