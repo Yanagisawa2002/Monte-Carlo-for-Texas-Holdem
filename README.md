@@ -1,5 +1,125 @@
-# Monte-Carlo-for-Texas-Holdem
-本代码使用蒙特卡洛算法，可以计算德州扑克中，玩家的胜率为多少。  
-在查看手中两张牌、亮明三张公牌、亮明一张公牌、亮明一张公牌的这四个过程中，玩家会依次获得当前状态对应的胜率，从而更好地进行决策。  
-This code utilizes the Monte Carlo algorithm to calculate the probability of a player winning in Texas Hold'em poker.  
-During the four stages—viewing two hole cards, the reveal of three community cards, the reveal of one additional community card, and the reveal of another community card—the player receives real-time win probability updates corresponding to the current game state. This enables them to make better decisions throughout the hand.
+# 德州扑克胜率计算器
+
+这是一个基于蒙特卡洛模拟的德州扑克胜率计算器，提供Gradio Web界面和PyQt桌面应用两种版本。通过科学的概率计算，帮助玩家在不同游戏阶段做出更明智的决策。
+
+## 算法原理
+
+本计算器核心采用**蒙特卡洛模拟算法**，通过大量随机抽样来近似计算胜率：
+
+1. **初始化**：创建一副标准扑克牌，移除已发的手牌和公牌
+2. **模拟发牌**：为每个玩家随机发牌，并发放剩余的公牌
+3. **评估手牌**：使用HandEvaluator评估所有玩家的最终手牌强度
+4. **统计结果**：比较玩家手牌，统计赢、输、平的次数
+5. **计算概率**：根据模拟结果计算胜率、平局率和优势倍数
+
+模拟次数越多，结果越准确。默认提供三个精度级别：
+- 快速：1,000次模拟
+- 平衡：10,000次模拟
+- 精确：100,000次模拟
+
+## 功能特点
+
+- 支持2-10名玩家的德州扑克胜率计算
+- 可选择不同游戏阶段：翻牌前、翻牌后、转牌后、河牌后
+- 可调整模拟精度以平衡速度和准确性
+- 显示胜率、优势倍数和策略建议
+- 提供两种界面版本：Web界面(Gradio)和桌面应用(PyQt)
+- 支持部署为个人网站
+
+## 版本说明
+
+### Gradio版
+基于Web的界面，易于使用和分享，支持通过链接远程访问。
+
+### PyQt版
+桌面应用程序，提供更丰富的本地交互体验，适合离线使用。
+
+## 安装说明
+
+1. 确保已安装Python 3.7或更高版本
+
+2. 克隆或下载此项目到本地
+
+3. 安装所需依赖：
+```
+pip install -r requirements.txt
+```
+
+## Gradio版使用方法
+
+1. 运行应用：
+```
+python poker_gradio_gui.py
+```
+
+2. 在浏览器中打开生成的链接（本地或共享链接）
+
+3. 选择玩家数量、游戏阶段，输入手牌和公牌信息：
+   - 选择玩家数量（2-10）
+   - 选择游戏阶段（翻牌前、翻牌后、转牌后、河牌后）
+   - 选择模拟精度（快速、平衡、精确）
+   - 输入自己的两张手牌（选择牌型和花色）
+   - 根据所选阶段输入相应的公牌（翻牌3张、转牌1张、河牌1张）
+
+4. 点击"计算胜率"按钮开始计算
+
+5. 查看计算结果，包括胜率、优势倍数和策略建议
+
+## PyQt版使用方法
+
+1. 运行应用：
+```
+python poker_pyqt_gui.py
+```
+
+2. 在打开的窗口中操作：
+   - 在"玩家设置"中选择玩家数量（2-10）
+   - 在"游戏阶段"中选择当前阶段（翻牌前、翻牌后、转牌后、河牌后）
+   - 在"精度设置"中选择模拟精度（快速、平衡、精确）
+   - 在"手牌设置"中选择自己的两张手牌
+   - 根据所选阶段在"公牌设置"中输入相应的公牌
+
+3. 点击"开始计算"按钮开始模拟
+
+4. 查看计算结果，包括胜率、平局率、输率和优势倍数
+
+## 部署说明
+
+### Gradio版部署
+
+运行应用时，Gradio会自动生成一个本地链接和一个可选的共享链接。如果需要长期部署，可以考虑以下选项：
+
+1. 使用Hugging Face Spaces托管（推荐）：
+   - 注册Hugging Face账号
+   - 创建新Space
+   - 上传代码并配置环境
+
+2. 部署到自己的服务器：
+   - 安装必要的依赖
+   - 运行Gradio应用
+   - 配置反向代理和防火墙
+
+3. 使用云服务如AWS、Google Cloud等
+
+### PyQt版分发
+
+可以使用PyInstaller等工具将PyQt版本打包为可执行文件：
+```
+pyinstaller --onefile --windowed poker_pyqt_gui.py
+```
+
+## 注意事项
+
+- 计算速度取决于所选的模拟精度和计算机性能
+- 高精度模式可能需要较长时间，请耐心等待
+- Gradio共享链接的有效期有限，如需长期访问请考虑其他部署方式
+- 本工具仅用于学习和娱乐目的，请勿用于赌博
+
+## 技术栈
+
+- Python 3.7+
+- Gradio - 创建Web界面
+- PyQt5 - 创建桌面应用
+- tqdm - 进度显示
+
+希望这个应用能帮助你提高德州扑克水平！如有任何问题或建议，请随时提出。
